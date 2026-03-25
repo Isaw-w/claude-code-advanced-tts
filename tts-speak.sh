@@ -1,7 +1,11 @@
 #!/bin/bash
-# Claude Code TTS Hook
-# Reads Claude's response from the Stop hook and speaks it aloud
-# using macOS system Spoken Content voice (supports Siri natural voices).
+# Advanced TTS for AI coding assistants (Claude Code, Codex, etc.)
+# Speaks text aloud using macOS system Spoken Content voice (supports Siri natural voices).
+#
+# Usage:
+#   echo "hello" | ./tts-speak.sh          # pipe text directly
+#   ./tts-speak.sh "hello world"            # pass as argument
+#   jq -r '.message' | ./tts-speak.sh      # pipe from JSON extraction
 #
 # The voice is determined by your system settings:
 #   System Settings > Accessibility > Spoken Content > System Voice
@@ -12,8 +16,12 @@
 # Kill any previous speech so responses don't overlap
 killall say 2>/dev/null
 
-# Read text from stdin (hook pipes JSON, jq extracts the message)
-text=$(cat)
+# Read text from argument or stdin
+if [ -n "$1" ]; then
+    text="$*"
+else
+    text=$(cat)
+fi
 
 # Strip markdown formatting that sounds bad when read aloud
 text=$(echo "$text" \
