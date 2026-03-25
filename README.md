@@ -76,33 +76,30 @@ If you already have other hooks, merge the `Stop` entry into your existing `hook
 <details>
 <summary><strong>Codex (OpenAI)</strong></summary>
 
-Codex doesn't have a built-in hook system, but you can wrap it to pipe output through TTS.
+Codex supports a `notify` hook that fires on `agent-turn-complete` with the assistant's response.
 
-**Option A: Shell wrapper**
-
-Add this function to your `~/.zshrc` or `~/.bashrc`:
+**1. Copy the notify script:**
 
 ```bash
-codex-tts() {
-    codex "$@" 2>&1 | tee /dev/tty | ~/.claude/tts-speak.sh
-}
+cp claude-code-advanced-tts/codex-notify-tts.py ~/.claude/codex-notify-tts.py
 ```
 
-Then use `codex-tts` instead of `codex`.
+**2. Add to your Codex `config.toml`:**
 
-**Option B: Post-command hook via precmd (zsh)**
-
-```bash
-# Add to ~/.zshrc — speaks the last command output after any codex call
-codex_tts_precmd() {
-    local last_cmd=$(fc -ln -1 | xargs)
-    if [[ "$last_cmd" == codex* ]]; then
-        # Pipe last terminal output to TTS (requires 'script' or manual capture)
-        echo "Codex finished." | ~/.claude/tts-speak.sh
-    fi
-}
-precmd_functions+=(codex_tts_precmd)
+```toml
+notify = ["python3", "~/.claude/codex-notify-tts.py"]
 ```
+
+Or under a profile:
+
+```toml
+[profiles.tts]
+notify = ["python3", "~/.claude/codex-notify-tts.py"]
+```
+
+Then run with `codex --profile tts`.
+
+The notify script receives a JSON argument with `last-assistant-message` on each turn completion, extracts the text, and pipes it to `tts-speak.sh`.
 
 </details>
 
